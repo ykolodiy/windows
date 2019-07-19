@@ -1,0 +1,24 @@
+Enable PowerShell Remoting on the PC You Want to Access Remotely
+
+on slave and slaves
+1 Enable-PSRemoting -Force
+2 Set-Item wsman:\localhost\client\trustedhosts *
+3 Restart-Service WinRM
+4!!! this fix issues: Enable-PSRemoting -SkipNetworkProfileCheck -Force
+5 Restart-Service WinRM
+
+on host 
+
+run: Invoke-Command -ComputerName 10.0.0.22 -ScriptBlock { Get-ChildItem C:\ } -credential wjgle
+or start session: Enter-PSSession -ComputerName COMPUTER -Credential USER
+
+//to add password in command
+$password = ConvertTo-SecureString "P4££W0r@" -AsPlainText -Force
+$user = "LON-CL1\Admin"
+$cred = New-Object System.Management.Automation.PSCredential ($user,$password)
+
+#Here ill start a new powershell remote session with the selected virtual machine
+Enter-PSSession -VMName $vms[2].Name -Credential $cred
+
+
+ps https://www.howtogeek.com/117192/how-to-run-powershell-commands-on-remote-computers/
