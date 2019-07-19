@@ -19,6 +19,6 @@ $cred = New-Object System.Management.Automation.PSCredential ($user,$password)
 
 #Here ill start a new powershell remote session with the selected virtual machine
 Enter-PSSession -VMName $vms[2].Name -Credential $cred
-
+!!!! Enter-PSSession -ComputerName 192.168.1.6 -Credential $cred
 
 ps https://www.howtogeek.com/117192/how-to-run-powershell-commands-on-remote-computers/
