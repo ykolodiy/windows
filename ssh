@@ -1,0 +1,85 @@
+https://kb.iu.edu/d/aews
+
+
+Set up public-key authentication using SSH on a Linux or macOS computer
+To set up public-key authentication using SSH on a Linux or macOS computer:
+
+Log into the computer you'll use to access the remote host, and then use command-line SSH to generate a key pair using the RSA algorithm.
+To generate RSA keys, on the command line, enter:
+
+ssh-keygen -t rsa
+You will be prompted to supply a filename (for saving the key pair) and a password (for protecting your private key):
+Filename: To accept the default filename (and location) for your key pair, press Enter or Return without entering a filename.
+Alternatively, you can enter a filename (for example, my_ssh_key) at the prompt, and then press Enter or Return. However, many remote hosts are configured to accept private keys with the default filename and path (~/.ssh/id_rsa for RSA keys) by default. Consequently, to authenticate with a private key that has a different filename, or one that is not stored in the default location, you must explicitly invoke it either on the SSH command line or in an SSH client configuration file (~/.ssh/config); see below for instructions.
+
+Password: Enter a password that contains at least five characters, and then press Enter or Return. If you press Enter or Return without entering a password, your private key will be generated without password-protection.
+Important:
+If you don't password-protect your private key, anyone with access to your computer conceivably can SSH (without being prompted for a password) to your account on any remote system that has the corresponding public key.
+Your private key will be generated using the default filename (for example, id_rsa) or the filename you specified (for example, my_ssh_key), and stored on your computer in a .ssh directory off your home directory (for example, ~/.ssh/id_rsa or ~/.ssh/my_ssh_key).
+
+The corresponding public key will be generated using the same filename (but with a .pub extension added) and stored in the same location (for example, ~/.ssh/id_rsa.pub or ~/.ssh/my_ssh_key.pub).
+
+Use SFTP or SCP to copy the public key file (for example, ~/.ssh/id_rsa.pub) to your account on the remote system (for example, darvader@deathstar.empire.gov); for example, using command-line SCP:
+scp ~/.ssh/id_rsa.pub darvader@deathstar.empire.gov:
+You'll be prompted for your account password. Your public key will be copied to your home directory (and saved with the same filename) on the remote system.
+
+Log into the remote system using your account username and password.
+Note:
+If the remote system is not configured to support password-based authentication, you will need to ask system administrators to add your public key to the ~/.ssh/authorized_keys file in your account (if your account doesn't have ~/.ssh/authorized_keys file, system administrators can create one for you). Once your public key is added to your ~/.ssh/authorized_keys file on the remote system, the setup process is complete, and you should now be able to SSH to your account from the computer that has your private key.
+If your account on the remote system doesn't already contain a ~/.ssh/authorized_keys file, create one; on the command line, enter the following commands:
+mkdir -p ~/.ssh
+touch ~/.ssh/authorized_keys
+Note:
+If your account on the remote system already has a ~/.ssh/authorized_keys file, executing these commands will not damage the existing directory or file.
+On the remote system, add the contents of your public key file (for example, ~/id_rsa.pub) to a new line in your ~/.ssh/authorized_keys file; on the command line, enter:
+cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
+You may want to check the contents of ~/.ssh/authorized_keys to make sure your public key was added properly; on the command line, enter:
+
+more ~/.ssh/authorized_keys
+You may now safely delete the public key file (for example, ~/id_rsa.pub) from your account on the remote system; on the command line, enter:
+rm ~/id_rsa.pub
+Alternatively, if you prefer to keep a copy of your public key on the remote system, move it to your .ssh directory; on the command line, enter:
+
+mv ~/id_rsa.pub ~/.ssh/
+Optionally, repeat steps 3-7 to add your public key to other remote systems that you want to access from the computer that has your private key using SSH public-key authentication.
+You now should be able to SSH to your account on the remote system (for example, username@host2.somewhere.edu) from the computer (for example, host1) that has your private key (for example, ~/.ssh/id_rsa):
+If your private key is password-protected, the remote system will prompt you for the password or passphrase (your private key password/passphrase is not transmitted to the remote system):
+[username@host1 ~]$ ssh username@host2.somewhere.edu
+Enter passphrase for key '/username/Host1/.ssh/id_rsa':
+Last login: Mon Oct 20 09:23:17 2014 from host1.somewhere_else.edu
+If your private key is not password-protected, the remote system will place you on the command line in your home directory without prompting you for a password or passphrase:
+[username@host1 ~]$ ssh username@host2.somewhere.edu
+Last login: Mon Oct 20 09:23:17 2014 from host1.somewhere_else.edu
+If the private key you're using does not have the default name, or is not stored in the default path (not ~/.ssh/id_rsa), you must explicitly invoke it in one of two ways:
+
+On the SSH command line: Add the -i flag and the path to your private key.
+For example, to invoke the private key host2_key, stored in the ~/.ssh/old_keys directory, when connecting to your account on a remote host (for example, username@host2.somewhere.edu), enter:
+
+ssh -i ~/.ssh/old_keys/host2_key username@host2.somewhere.edu
+In an SSH client configuration file: SSH gets configuration data from the following sources (in this order):
+From command-line options
+From the user's client configuration file (~/.ssh/config), if it exists
+From the system-wide client configuration file (/etc/ssh/ssh_config)
+The SSH client configuration file is a text file containing keywords and arguments. To specify which private key should be used for connections to a particular remote host, use a text editor to create a ~/.ssh/config that includes the Host and IdentityFile keywords.
+
+For example, for connections to host2.somewhere.edu, to make SSH automatically invoke the private key host2_key, stored in the ~/.ssh/old_keys directory, create a ~/.ssh/config file with these lines included:
+
+Host host2.somewhere.edu
+IdentityFile ~/.ssh/old_keys/host2_key
+Once you save the file, SSH will use the specified private key for future connections to that host.
+
+You can add multiple Host and IdentityFile directives to specify a different private key for each host listed; for example:
+
+Host host2.somewhere.edu
+IdentityFile ~/.ssh/old_keys/host2_key
+
+Host host4.somewhere.edu
+IdentityFile ~/.ssh/old_keys/host4_key
+
+Host host6.somewhere.edu
+IdentityFile ~/.ssh/old_keys/host6_key
+Alternatively, you can use a single asterisk ( * ) to provide global defaults for all hosts (specify one private key for several hosts); for example:
+
+Host *.somewhere.edu
+IdentityFile ~/.ssh/old_keys/all_hosts_key
+For more about the SSH client configuration file, see the OpenSSH SSH client configuration file on the web  or from the command line (man ssh_config).
